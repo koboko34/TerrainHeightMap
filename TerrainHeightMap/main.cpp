@@ -11,6 +11,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "External/stb_image.h"
 
+#include "Window.h"
+#include "Camera.h"
 #include "Shader.h"
 
 int main()
@@ -20,28 +22,14 @@ int main()
 	const int WIDTH = 800;
 	const int HEIGHT = 600;
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "TerrainHeightMapWindow", nullptr, nullptr);
-
-	if (window == nullptr)
-	{
-		std::cout << "Failed to create window!\n";
-		glfwTerminate();
-		return 1;
-	}
-	
-	glfwMakeContextCurrent(window);
-	glViewport(0, 0, WIDTH, HEIGHT);
-	glEnable(GL_DEPTH_TEST);
+	Window mainWindow(WIDTH, HEIGHT);
+	Camera camera(mainWindow.getWindow());
 
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 	{
 		std::cout << "GLEW initialisation failed!" << std::endl;
-		glfwDestroyWindow(window);
+		glfwDestroyWindow(mainWindow.getWindow());
 		glfwTerminate();
 		return 2;
 	}
@@ -161,10 +149,6 @@ int main()
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
 
-	glm::mat4 view(1.f);
-	view = glm::translate(view, glm::vec3(0.f, 0.f, -3.f));
-	GLint viewLoc = glGetUniformLocation(shader.shaderId, "view");
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
 	glm::mat4 projection;
 	projection = glm::perspective(glm::radians(45.f), (float)HEIGHT / (float)WIDTH, 0.1f, 100.f);
@@ -184,9 +168,12 @@ int main()
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(mainWindow.getWindow()))
 	{
 		glfwPollEvents();
+		camera.processKeyInput();
+		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -204,16 +191,18 @@ int main()
 			GLint modelLoc = glGetUniformLocation(shader.shaderId, "model");
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
+			glm::mat4 view;
+			view = camera.calculateViewMatrix();
+			GLint viewLoc = glGetUniformLocation(shader.shaderId, "view");
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		glBindVertexArray(0);
 
-		glfwSwapBuffers(window);
+		glfwSwapBuffers(mainWindow.getWindow());
 	}
-
-	glfwDestroyWindow(window);
-	glfwTerminate();
 
 	return 0;
 }
