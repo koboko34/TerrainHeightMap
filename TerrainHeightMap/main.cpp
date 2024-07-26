@@ -4,6 +4,10 @@
 
 #include "GLFW/glfw3.h"
 
+#include "GLM/glm.hpp"
+#include "GLM/gtc/matrix_transform.hpp"
+#include "GLM/gtc/type_ptr.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "External/stb_image.h"
 
@@ -126,6 +130,13 @@ int main()
 		glfwPollEvents();
 		glClearColor(0.2f, 0.3f, 0.3f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		glm::mat4 trans(1.f);
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.f, 0.f, 1.f));
+
+		GLint transformLoc = glGetUniformLocation(shader.shaderId, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		// Wireframe mode
 		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
