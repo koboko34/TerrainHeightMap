@@ -32,6 +32,8 @@ private:
 	GLfloat xChange;
 	GLfloat yChange;
 	bool mouseFirstMove;
+
+	Camera* camera;
 	
 	void init();
 	static void handleMouse(GLFWwindow* window, double xPos, double yPos);

@@ -5,27 +5,34 @@
 #include "GLM/glm.hpp"
 #include "GLM/gtc/matrix_transform.hpp"
 
+#include "Window.h"
+
 class Camera
 {
 public:
-	Camera(GLFWwindow* window) : window(window) {}
+	Camera(GLFWwindow* newWindow);
 	~Camera() {};
 
 	void processKeyInput();
 	void mouseControl(GLfloat xChange, GLfloat yChange);
 
+	static void processScroll(GLFWwindow* window, double xOffset, double yOffset);
+
 	glm::mat4 calculateViewMatrix();
+
+	static float cameraSpeed;
 
 private:	
 	GLFWwindow* window;
 	
-	glm::vec3 cameraPos		= glm::vec3(0.f, 0.f,  3.f);
+	glm::vec3 cameraPos		= glm::vec3(0.f, 3.f,  6.f);
 	glm::vec3 cameraFront	= glm::vec3(0.f, 0.f, -1.f);
 	glm::vec3 cameraUp		= glm::vec3(0.f, 1.f,  0.f);
 	glm::vec3 worldUp		= glm::vec3(0.f, 1.f,  0.f);
 
 	float yaw = -90.f, pitch = 0.f;
 	const float lookSensitivity = 0.1f;
+	static const float cameraSpeedUpFactor;
 
 	float deltaTime = 0.f;
 	float lastTime = 0.f;
@@ -33,26 +40,34 @@ private:
 	void update();
 };
 
+float Camera::cameraSpeed = 100.f;
+const float Camera::cameraSpeedUpFactor = 1.5f;
+
+Camera::Camera(GLFWwindow* newWindow)
+{
+	window = newWindow;
+
+	glfwSetScrollCallback(window, processScroll);
+}
+
 void Camera::processKeyInput()
 {
 	float currentTime = glfwGetTime();
 	deltaTime = currentTime - lastTime;
 	lastTime = currentTime;
 
-	const float cameraSpeed = 4.f * deltaTime;
-
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += cameraSpeed * cameraFront;
+		cameraPos += cameraSpeed * deltaTime * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * cameraFront;
+		cameraPos -= cameraSpeed * deltaTime * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		cameraPos -= cameraSpeed * deltaTime * glm::normalize(glm::cross(cameraFront, cameraUp));
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		cameraPos += cameraSpeed * deltaTime * glm::normalize(glm::cross(cameraFront, cameraUp));
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * worldUp;
+		cameraPos -= cameraSpeed * deltaTime * worldUp;
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-		cameraPos += cameraSpeed * worldUp;
+		cameraPos += cameraSpeed * deltaTime * worldUp;
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
@@ -77,6 +92,18 @@ void Camera::mouseControl(GLfloat xOffset, GLfloat yOffset)
 		pitch = -89.f;
 
 	update();
+}
+
+void Camera::processScroll(GLFWwindow* window, double xOffset, double yOffset)
+{
+	if (yOffset > 0)
+	{
+		cameraSpeed *= cameraSpeedUpFactor;
+	}
+	else
+	{
+		cameraSpeed /= cameraSpeedUpFactor;
+	};
 }
 
 void Camera::update()
