@@ -98,6 +98,9 @@ inline void Terrain::createTerrain(float farPlane)
 	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxTessLevel);
 	terrainShader.setInt("MAX_TESS_LEVEL", maxTessLevel);
 
+	GLint colorLocation = glGetUniformLocation(terrainShader.shaderId, "color");
+	glUniform3fv(colorLocation, 1, glm::value_ptr(glm::vec3(0.3f, 0.5f, 0.1f)));
+
 	glm::mat4 model(1.f);
 	terrainShader.setMatrix4fv("model", 1, glm::value_ptr(model));
 

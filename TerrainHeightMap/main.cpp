@@ -78,16 +78,9 @@ int main()
 		1, 2, 3
 	};
 
-	float grassOffsets[] = {
-		 0.f, 0.f, 0.f,
-		 5.f, 0.f, 0.f,
-		10.f, 0.f, 0.f,
-		15.f, 0.f, 0.f,
-		20.f, 0.f, 0.f,
-		25.f, 0.f, 0.f,
-	};
-
-	const unsigned int BILLBOARDS_PER_GRASS = 3;
+	const int BILLBOARDS_PER_GRASS = 3;
+	const int NUM_GRASS_OBJECTS = 60 * 60;
+	const float FIELD_DISTANCE = 100.f;
 	glm::mat4 grassModels[BILLBOARDS_PER_GRASS];
 	grassModels[0] = glm::mat4(1.f);
 	grassModels[1] = glm::rotate(grassModels[0], glm::radians(120.f), glm::vec3(0.f, 1.f, 0.f));
@@ -99,10 +92,12 @@ int main()
 	Shader grassShader("Shaders/grass.vs", "Shaders/grass.fs");
 	grassShader.UseShader();
 	grassShader.setInt("grassTexture", 1);
+	grassShader.setInt("NUM_GRASS_OBJECTS", NUM_GRASS_OBJECTS);
+	grassShader.setFloat("FIELD_DISTANCE", FIELD_DISTANCE);
 	grassShader.setMatrix4fv("projection", 1, glm::value_ptr(projection));
 	grassShader.setMatrix4fv("models", 3, &grassModels[0][0][0]);
 
-	GLuint grassVAO, grassVBO, grassOffsetsVBO, grassEBO;
+	GLuint grassVAO, grassVBO, grassEBO;
 	glGenVertexArrays(1, &grassVAO);
 	glBindVertexArray(grassVAO);
 
@@ -113,13 +108,6 @@ int main()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-
-	glGenBuffers(1, &grassOffsetsVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, grassOffsetsVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(grassOffsets), grassOffsets, GL_STATIC_DRAW);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	glEnableVertexAttribArray(2);
-	glVertexAttribDivisor(2, 3);
 
 	glGenBuffers(1, &grassEBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassEBO);
@@ -203,10 +191,8 @@ int main()
 		view = camera.calculateViewMatrix();
 
 		// Wireframe mode
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		terrain.renderTerrain(view);
-
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glBindVertexArray(playerReferenceVAO);
@@ -219,7 +205,7 @@ int main()
 		grassShader.setMatrix4fv("view", 1, glm::value_ptr(view));
 		//glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
-		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, BILLBOARDS_PER_GRASS * 6);
+		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, BILLBOARDS_PER_GRASS * NUM_GRASS_OBJECTS);
 		//glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 		glBindVertexArray(0);
