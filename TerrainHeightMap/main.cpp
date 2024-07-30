@@ -81,7 +81,10 @@ int main()
 	float grassOffsets[] = {
 		 0.f, 0.f, 0.f,
 		 5.f, 0.f, 0.f,
-		10.f, 0.f, 0.f
+		10.f, 0.f, 0.f,
+		15.f, 0.f, 0.f,
+		20.f, 0.f, 0.f,
+		25.f, 0.f, 0.f,
 	};
 
 	const unsigned int BILLBOARDS_PER_GRASS = 3;
@@ -216,7 +219,7 @@ int main()
 		grassShader.setMatrix4fv("view", 1, glm::value_ptr(view));
 		//glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
-		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, BILLBOARDS_PER_GRASS * 3);
+		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, BILLBOARDS_PER_GRASS * 6);
 		//glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
 		glBindVertexArray(0);
