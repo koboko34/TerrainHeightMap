@@ -20,10 +20,10 @@ int main()
 {
 	glfwInit();
 
-	const int WIDTH = 1600;
-	const int HEIGHT = 1200;
+	const int WIDTH = 1920;
+	const int HEIGHT = 1080;
 
-	Window mainWindow(WIDTH, HEIGHT);
+	Window mainWindow(WIDTH, HEIGHT, false);
 	Camera camera(mainWindow.getWindow());
 
 	glewExperimental = GL_TRUE;
@@ -33,7 +33,7 @@ int main()
 		return 2;
 	}
 
-	// stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true);
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load("Textures/iceland_heightmap.png", &width, &height, &nrChannels, 0);
 
@@ -95,7 +95,7 @@ int main()
 	terrainShader.setMatrix4fv("model", model);
 
 	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.f), (float)HEIGHT / (float)WIDTH, 0.1f, 50000.f);
+	projection = glm::perspective(glm::radians(45.f), (float)HEIGHT / (float)WIDTH, 0.1f, 5000.f);
 	terrainShader.setMatrix4fv("projection", projection);
 
 	GLuint heightMapTexture;
@@ -110,11 +110,65 @@ int main()
 
 	if (data)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		//glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
 	stbi_image_free(data);
+
+	GLuint grassTexture;
+	glGenTextures(1, &grassTexture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	data = nullptr;
+	data = stbi_load("Textures/billboardgrass.png", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	stbi_image_free(data);
+
+	float grassVertices[] = {
+		-1.f, -1.f, 0.f,		0.f, 0.f,
+		 1.f, -1.f, 0.f,		1.f, 0.f,
+		 1.f,  1.f, 0.f,		1.f, 1.f,
+		-1.f,  1.f, 0.f,		0.f, 1.f
+	};
+
+	unsigned int grassIndices[] = {
+		0, 1, 3,
+		1, 2, 3
+	};
+
+	Shader grassShader("Shaders/grass.vs", "Shaders/grass.fs");
+	grassShader.UseShader();
+	grassShader.setInt("grassTexture", 1);
+	grassShader.setMatrix4fv("model", model);
+	grassShader.setMatrix4fv("projection", projection);
+
+	GLuint grassVAO, grassVBO, grassEBO;
+	glGenVertexArrays(1, &grassVAO);
+	glBindVertexArray(grassVAO);
+
+	glGenBuffers(1, &grassVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassVertices), grassVertices, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &grassEBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(grassIndices), grassIndices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	while (!glfwWindowShouldClose(mainWindow.getWindow()))
 	{
@@ -124,6 +178,7 @@ int main()
 		
 		glm::mat4 view;
 		view = camera.calculateViewMatrix();
+		terrainShader.UseShader();
 		terrainShader.setMatrix4fv("view", view);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.f);
@@ -132,8 +187,14 @@ int main()
 		// Wireframe mode
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		glBindVertexArray(terrainVAO);
-		glDrawArrays(GL_PATCHES, 0, 4 * rez * rez);
+		//glBindVertexArray(terrainVAO);
+		//terrainShader.UseShader();
+		//glDrawArrays(GL_PATCHES, 0, 4 * rez * rez);
+		
+		glBindVertexArray(grassVAO);
+		grassShader.UseShader();
+		grassShader.setMatrix4fv("view", view);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(mainWindow.getWindow());

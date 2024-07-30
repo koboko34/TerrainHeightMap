@@ -12,7 +12,7 @@
 class Window
 {
 public:
-	Window(int width, int height);
+	Window(int width, int height, bool fullScreen);
 	~Window();
 
 	GLFWwindow* getWindow() const { return window; }
@@ -26,6 +26,7 @@ private:
 	GLFWwindow* window;
 	const int WIDTH;
 	const int HEIGHT;
+	const bool fullscreen;
 
 	GLfloat lastX;
 	GLfloat lastY;
@@ -39,7 +40,7 @@ private:
 	static void handleMouse(GLFWwindow* window, double xPos, double yPos);
 };
 
-Window::Window(int width, int height) : WIDTH(width), HEIGHT(height)
+Window::Window(int width, int height, bool fullScreen) : WIDTH(width), HEIGHT(height), fullscreen(fullScreen)
 {
 	xChange = 0.f;
 	yChange = 0.f;
@@ -63,7 +64,13 @@ void Window::init()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	window = glfwCreateWindow(WIDTH, HEIGHT, "TerrainHeightMapWindow", nullptr, nullptr);
+	window = glfwCreateWindow(
+		WIDTH,
+		HEIGHT,
+		"TerrainHeightMapWindow",
+		fullscreen ? glfwGetPrimaryMonitor() : nullptr,
+		nullptr
+	);
 
 	if (window == nullptr)
 	{
@@ -78,6 +85,8 @@ void Window::init()
 	glfwSetWindowUserPointer(window, this);
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 GLfloat Window::getXChange()

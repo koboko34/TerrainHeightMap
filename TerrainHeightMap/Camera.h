@@ -25,7 +25,7 @@ public:
 private:	
 	GLFWwindow* window;
 	
-	glm::vec3 cameraPos		= glm::vec3(0.f, 3.f,  6.f);
+	glm::vec3 cameraPos		= glm::vec3(0.f, 0.f,  0.f);
 	glm::vec3 cameraFront	= glm::vec3(0.f, 0.f, -1.f);
 	glm::vec3 cameraUp		= glm::vec3(0.f, 1.f,  0.f);
 	glm::vec3 worldUp		= glm::vec3(0.f, 1.f,  0.f);
