@@ -121,8 +121,8 @@ int main()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -136,15 +136,19 @@ int main()
 	stbi_image_free(data);
 
 	float grassVertices[] = {
-		-1.f, -1.f, 0.f,		0.f, 0.f,
-		 1.f, -1.f, 0.f,		1.f, 0.f,
-		 1.f,  1.f, 0.f,		1.f, 1.f,
-		-1.f,  1.f, 0.f,		0.f, 1.f
+		-1.f, -1.f,		0.f, 0.f,
+		 1.f, -1.f,		1.f, 0.f,
+		 1.f,  1.f,		1.f, 1.f,
+		-1.f,  1.f,		0.f, 1.f
 	};
 
 	unsigned int grassIndices[] = {
 		0, 1, 3,
 		1, 2, 3
+	};
+
+	float grassOffsets[] = {
+		0.f, 5.f
 	};
 
 	Shader grassShader("Shaders/grass.vs", "Shaders/grass.fs");
@@ -153,22 +157,29 @@ int main()
 	grassShader.setMatrix4fv("model", model);
 	grassShader.setMatrix4fv("projection", projection);
 
-	GLuint grassVAO, grassVBO, grassEBO;
+	GLuint grassVAO, grassVBO, grassOffsetsVBO, grassEBO;
 	glGenVertexArrays(1, &grassVAO);
 	glBindVertexArray(grassVAO);
 
 	glGenBuffers(1, &grassVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, grassVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(grassVertices), grassVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glGenBuffers(1, &grassOffsetsVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, grassOffsetsVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(grassOffsets), grassOffsets, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+	glVertexAttribDivisor(2, 1);
 
 	glGenBuffers(1, &grassEBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(grassIndices), grassIndices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
 	while (!glfwWindowShouldClose(mainWindow.getWindow()))
 	{
@@ -194,7 +205,7 @@ int main()
 		glBindVertexArray(grassVAO);
 		grassShader.UseShader();
 		grassShader.setMatrix4fv("view", view);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, 2);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(mainWindow.getWindow());
