@@ -148,14 +148,24 @@ int main()
 	};
 
 	float grassOffsets[] = {
-		0.f, 5.f
+		 0.f, 0.f, 0.f,
+		 5.f, 0.f, 0.f,
+		10.f, 0.f, 0.f
 	};
+
+	const unsigned int BILLBOARDS_PER_GRASS = 3;
+	glm::mat4 grassModels[BILLBOARDS_PER_GRASS];
+	grassModels[0] = glm::mat4(1.f);
+	grassModels[1] = glm::rotate(grassModels[0], glm::radians(120.f), glm::vec3(0.f, 1.f, 0.f));
+	grassModels[2] = glm::rotate(grassModels[0], glm::radians(240.f), glm::vec3(0.f, 1.f, 0.f));
 
 	Shader grassShader("Shaders/grass.vs", "Shaders/grass.fs");
 	grassShader.UseShader();
 	grassShader.setInt("grassTexture", 1);
-	grassShader.setMatrix4fv("model", model);
 	grassShader.setMatrix4fv("projection", projection);
+	
+	GLint grassModelsLocation = glGetUniformLocation(grassShader.shaderId, "models");
+	glUniformMatrix4fv(grassModelsLocation, 3, GL_FALSE, &grassModels[0][0][0]);
 
 	GLuint grassVAO, grassVBO, grassOffsetsVBO, grassEBO;
 	glGenVertexArrays(1, &grassVAO);
@@ -172,9 +182,9 @@ int main()
 	glGenBuffers(1, &grassOffsetsVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, grassOffsetsVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(grassOffsets), grassOffsets, GL_STATIC_DRAW);
-	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(2);
-	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(2, 3);
 
 	glGenBuffers(1, &grassEBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassEBO);
@@ -205,7 +215,11 @@ int main()
 		glBindVertexArray(grassVAO);
 		grassShader.UseShader();
 		grassShader.setMatrix4fv("view", view);
-		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, 2);
+		//glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, BILLBOARDS_PER_GRASS * 3);
+		//glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(mainWindow.getWindow());
