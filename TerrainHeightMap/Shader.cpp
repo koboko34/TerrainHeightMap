@@ -1,5 +1,9 @@
 #include "Shader.h"
 
+Shader::Shader()
+{
+}
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
 	std::string vertexCode;
@@ -200,7 +204,7 @@ void Shader::setFloat(const std::string& name, float value) const
 	glUniform1f(glGetUniformLocation(shaderId, name.c_str()), value);
 }
 
-void Shader::setMatrix4fv(const std::string& name, const glm::mat4 value) const
+void Shader::setMatrix4fv(const std::string& name, GLsizei count, const GLfloat* value) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(shaderId, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+	glUniformMatrix4fv(glGetUniformLocation(shaderId, name.c_str()), count, GL_FALSE, value);
 }

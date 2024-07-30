@@ -25,7 +25,7 @@ public:
 private:	
 	GLFWwindow* window;
 	
-	glm::vec3 cameraPos		= glm::vec3(0.f, 0.f,  0.f);
+	glm::vec3 cameraPos		= glm::vec3(0.f, 1.f,  5.f);
 	glm::vec3 cameraFront	= glm::vec3(0.f, 0.f, -1.f);
 	glm::vec3 cameraUp		= glm::vec3(0.f, 1.f,  0.f);
 	glm::vec3 worldUp		= glm::vec3(0.f, 1.f,  0.f);
@@ -40,7 +40,7 @@ private:
 	void update();
 };
 
-float Camera::cameraSpeed = 100.f;
+float Camera::cameraSpeed = 10.f;
 const float Camera::cameraSpeedUpFactor = 1.5f;
 
 Camera::Camera(GLFWwindow* newWindow)
