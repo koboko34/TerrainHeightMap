@@ -17,6 +17,7 @@ public:
 	GLuint shaderId;
 
 	Shader(const char* vertexPath, const char* fragmentPath);
+	Shader(const char* vertexPath, const char* fragmentPath, const char* tessControlPath, const char* tessEvalPath);
 
 	void UseShader();
 	void setBool(const std::string& name, bool value) const;
