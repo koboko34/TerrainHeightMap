@@ -203,11 +203,7 @@ int main()
 		glBindVertexArray(grassVAO);
 		grassShader.UseShader();
 		grassShader.setMatrix4fv("view", 1, glm::value_ptr(view));
-		//glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
 		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, BILLBOARDS_PER_GRASS * NUM_GRASS_OBJECTS);
-		//glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(mainWindow.getWindow());
