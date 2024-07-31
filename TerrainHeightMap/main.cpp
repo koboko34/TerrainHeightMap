@@ -53,7 +53,7 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -63,7 +63,7 @@ int main()
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+		//glGenerateMipmap(GL_TEXTURE_2D);
 	}
 	stbi_image_free(data);
 
@@ -73,7 +73,7 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -98,7 +98,7 @@ int main()
 	};
 
 	const int BILLBOARDS_PER_GRASS = 3;
-	const int NUM_GRASS_OBJECTS = 60 * 60;
+	const int NUM_GRASS_OBJECTS = 100 * 100;				// must keep this number square for now
 	const float FIELD_DISTANCE = 100.f;
 	glm::mat4 grassModels[BILLBOARDS_PER_GRASS];
 	grassModels[0] = glm::mat4(1.f);
@@ -113,6 +113,7 @@ int main()
 	grassShader.setInt("grassTexture", 1);
 	grassShader.setInt("noiseTexture", 2);
 	grassShader.setInt("NUM_GRASS_OBJECTS", NUM_GRASS_OBJECTS);
+	grassShader.setInt("BILLBOARDS_PER_GRASS", BILLBOARDS_PER_GRASS);
 	grassShader.setFloat("FIELD_DISTANCE", FIELD_DISTANCE);
 	grassShader.setMatrix4fv("projection", 1, glm::value_ptr(projection));
 	grassShader.setMatrix4fv("models", 3, &grassModels[0][0][0]);
@@ -213,7 +214,7 @@ int main()
 		camera.processKeyInput(deltaTime.count());
 		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 		
-		glClearColor(0.2f, 0.3f, 0.3f, 1.f);
+		glClearColor(0.4f, 0.8f, 0.9f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 view;
