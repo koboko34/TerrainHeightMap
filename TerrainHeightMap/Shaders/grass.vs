@@ -13,6 +13,8 @@ uniform mat4 projection;
 uniform float FIELD_DISTANCE;
 uniform int NUM_GRASS_OBJECTS;
 
+uniform sampler2D noiseTexture;
+
 float hash(float n)
 {
 	return fract(sin(n + 137.62591) * 43758.5453123);				// random magic number added to offset when seed == 0
@@ -52,12 +54,13 @@ void main()
 	float zOff = sin(rand2) / 2 * diameter;
 	vec4 randomOffset = vec4(xOff, 0.0, zOff, 0.0);
 
-	// random height offset for each grass object, applied to the top two vertices only (vertex 2 and 3)
+	// height offset for each grass object, applied to the top two vertices only (vertex 2 and 3) from a noise texture
 	vec4 heightOffset = vec4(0.0);
 	int localVertexID = gl_VertexID % 4;
 	if (localVertexID > 1)
 	{
-		heightOffset.y += 1.0 * sin(hash(objectID));
+		vec2 uv = vec2(float(x) / float(root), float(z) / float(root));
+		heightOffset = vec4(0.0, texture(noiseTexture, uv).x * 2.0, 0.0, 0.0);
 	}
 
 	vec4 worldPos = models[gl_InstanceID % 3] * rotationMatrix * vec4(aPos, 0.0, 1.0) + arrayPosOffset + randomOffset + heightOffset;

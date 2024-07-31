@@ -67,6 +67,24 @@ int main()
 	}
 	stbi_image_free(data);
 
+	GLuint noiseTexture;
+	glGenTextures(1, &noiseTexture);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	data = stbi_load("Textures/noiseTexture.png", &width, &height, &nrChannels, 0);
+	std::cout << nrChannels << std::endl;
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+	stbi_image_free(data);
+
 	float grassVertices[] = {
 		-1.f, 0.f,		0.f, 0.f,
 		 1.f, 0.f,		1.f, 0.f,
@@ -93,6 +111,7 @@ int main()
 	Shader grassShader("Shaders/grass.vs", "Shaders/grass.fs");
 	grassShader.UseShader();
 	grassShader.setInt("grassTexture", 1);
+	grassShader.setInt("noiseTexture", 2);
 	grassShader.setInt("NUM_GRASS_OBJECTS", NUM_GRASS_OBJECTS);
 	grassShader.setFloat("FIELD_DISTANCE", FIELD_DISTANCE);
 	grassShader.setMatrix4fv("projection", 1, glm::value_ptr(projection));
