@@ -70,8 +70,8 @@ int main()
 	float grassVertices[] = {
 		-1.f, 0.f,		0.f, 0.f,
 		 1.f, 0.f,		1.f, 0.f,
-		 1.f, 2.f,		1.f, 1.f,
-		-1.f, 2.f,		0.f, 1.f
+		 1.f, 1.f,		1.f, 1.f,
+		-1.f, 1.f,		0.f, 1.f
 	};
 
 	unsigned int grassIndices[] = {
@@ -187,7 +187,7 @@ int main()
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		deltaTime = currentTime - lastTime;
 		lastTime = currentTime;
-		std::cout << "Frame time: " << deltaTime.count() * 1000.0 << "ms" << std::endl;
+		//std::cout << "Frame time: " << deltaTime.count() * 1000.0 << "ms" << std::endl;
 		//std::cout << "FPS: " << 1.0 / deltaTime.count() << std::endl;
 		
 		glfwPollEvents();
@@ -210,6 +210,7 @@ int main()
 		basicShader.setMatrix4fv("view", 1, glm::value_ptr(view));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBindVertexArray(grassVAO);
 		grassShader.UseShader();
 		grassShader.setMatrix4fv("view", 1, glm::value_ptr(view));
