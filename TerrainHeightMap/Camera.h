@@ -13,7 +13,7 @@ public:
 	Camera(GLFWwindow* newWindow);
 	~Camera() {};
 
-	void processKeyInput();
+	void processKeyInput(float deltaTime);
 	void mouseControl(GLfloat xChange, GLfloat yChange);
 
 	static void processScroll(GLFWwindow* window, double xOffset, double yOffset);
@@ -33,9 +33,6 @@ private:
 	float yaw = -90.f, pitch = 0.f;
 	const float lookSensitivity = 0.1f;
 	static const float cameraSpeedUpFactor;
-
-	float deltaTime = 0.f;
-	float lastTime = 0.f;
 	
 	void update();
 };
@@ -50,12 +47,8 @@ Camera::Camera(GLFWwindow* newWindow)
 	glfwSetScrollCallback(window, processScroll);
 }
 
-void Camera::processKeyInput()
+void Camera::processKeyInput(float deltaTime)
 {
-	float currentTime = glfwGetTime();
-	deltaTime = currentTime - lastTime;
-	lastTime = currentTime;
-
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += cameraSpeed * deltaTime * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)

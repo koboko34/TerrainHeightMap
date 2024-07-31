@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 #include "GL/glew.h"
 
@@ -178,10 +179,19 @@ int main()
 	basicShader.setMatrix4fv("model", 1, glm::value_ptr(model));
 	basicShader.setMatrix4fv("projection", 1, glm::value_ptr(projection));
 
+	std::chrono::duration<double> deltaTime;
+	auto lastTime = std::chrono::high_resolution_clock::now();
+
 	while (!glfwWindowShouldClose(mainWindow.getWindow()))
-	{
+	{		
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+		std::cout << "Frame time: " << deltaTime.count() * 1000.0 << "ms" << std::endl;
+		//std::cout << "FPS: " << 1.0 / deltaTime.count() << std::endl;
+		
 		glfwPollEvents();
-		camera.processKeyInput();
+		camera.processKeyInput(deltaTime.count());
 		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 		
 		glClearColor(0.2f, 0.3f, 0.3f, 1.f);

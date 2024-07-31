@@ -80,6 +80,7 @@ void Window::init()
 	}
 
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(0);				// disables VSYNC
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, handleMouse);
 	glfwSetWindowUserPointer(window, this);
