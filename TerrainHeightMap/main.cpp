@@ -28,7 +28,8 @@ int main()
 
 	const int WIDTH = 1920;
 	const int HEIGHT = 1080;
-	const float FAR_PLANE = 50000.f;
+	const float FAR_PLANE = 5000.f;
+	const float NEAR_PLANE = 0.1;
 
 	Window mainWindow(WIDTH, HEIGHT, false);
 	Camera camera(mainWindow.getWindow());
@@ -39,11 +40,86 @@ int main()
 		std::cout << "GLEW initialisation failed!" << std::endl;
 		return 2;
 	}
+	
+	// ======================== SCREEN / FRAMEBUFFER ==============================
+
+	GLuint FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	GLuint depthTexture;
+	glGenTextures(1, &depthTexture);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Error with framebuffer when trying to bind to depth attachment!" << std::endl;
+	}
+
+	GLuint colorTexture;
+	glGenTextures(1, &colorTexture);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, colorTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Error with framebuffer when trying to bind to color attachment!" << std::endl;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	Shader fogShader("Shaders/screen.vs", "Shaders/fog.fs");
+	fogShader.useShader();
+	fogShader.setInt("depthTexture", 3);
+	fogShader.setInt("colorTexture", 4);
+	fogShader.setFloat("near", NEAR_PLANE);
+	fogShader.setFloat("far", FAR_PLANE);
+	fogShader.setFloat("fogDensity", 0.05f);
+	fogShader.setVec4("fogColor", 0.5f, 0.5f, 0.7f, 1.f);
+
+	float quadVertices[] = {
+		-1.f, -1.f,		0.f, 0.f,
+		 1.f, -1.f,		1.f, 0.f,
+		 1.f,  1.f,		1.f, 1.f,
+		-1.f,  1.f,		0.f, 1.f
+	};
+
+	unsigned int quadIndices[] = {
+		0, 1, 3,
+		1, 2, 3
+	};
+
+	GLuint quadVAO, quadVBO, quadEBO;
+	glGenVertexArrays(1, &quadVAO);
+	glBindVertexArray(quadVAO);
+
+	glGenBuffers(1, &quadVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glGenBuffers(1, &quadEBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
 
 	// ====================== TERRAIN =============================
 
 	Terrain terrain;
-	terrain.createTerrain(FAR_PLANE);
+	terrain.createTerrain(NEAR_PLANE, FAR_PLANE);
 
 	// ==================== GRASS ======================
 
@@ -105,10 +181,10 @@ int main()
 	grassModels[2] = glm::rotate(grassModels[0], glm::radians(240.f), glm::vec3(0.f, 1.f, 0.f));
 
 	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.f), (float)WIDTH / (float)HEIGHT, 0.1f, FAR_PLANE);
+	projection = glm::perspective(glm::radians(45.f), (float)WIDTH / (float)HEIGHT, NEAR_PLANE, FAR_PLANE);
 
 	Shader grassShader("Shaders/grass.vs", "Shaders/grass.fs");
-	grassShader.UseShader();
+	grassShader.useShader();
 	grassShader.setInt("grassTexture", 1);
 	grassShader.setInt("noiseTexture", 2);
 	grassShader.setInt("NUM_GRASS_OBJECTS", NUM_GRASS_OBJECTS);
@@ -190,7 +266,7 @@ int main()
 	glEnableVertexAttribArray(0);
 
 	Shader basicShader("Shaders/shader.vs", "Shaders/shader.fs");
-	basicShader.UseShader();
+	basicShader.useShader();
 	glm::mat4 model;
 	model = glm::mat4(1.f);
 	model = glm::scale(model, glm::vec3(1.f, 2.f, 1.f));
@@ -213,30 +289,38 @@ int main()
 		camera.processKeyInput(deltaTime.count());
 		camera.mouseControl(mainWindow.getXChange(), mainWindow.getYChange());
 		
-		glClearColor(0.4f, 0.8f, 0.9f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		glm::mat4 view;
 		view = camera.calculateViewMatrix();
-
-		// Wireframe mode
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		terrain.renderTerrain(view);
+		
+		// first pass ========= drawing to off-screen framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glClearColor(0.4f, 0.8f, 0.9f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		terrain.renderTerrain(view);
 
 		glBindVertexArray(playerReferenceVAO);
-		basicShader.UseShader();
+		basicShader.useShader();
 		basicShader.setMatrix4fv("view", 1, glm::value_ptr(view));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
-		/*
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 		glBindVertexArray(grassVAO);
-		grassShader.UseShader();
+		grassShader.useShader();
 		grassShader.setMatrix4fv("view", 1, glm::value_ptr(view));
 		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, BILLBOARDS_PER_GRASS * NUM_GRASS_OBJECTS);
 		glBindVertexArray(0);
-		*/
+		
+		// second pass ======== drawing to default on-screen framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.4f, 0.8f, 0.9f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
+
+		glBindVertexArray(quadVAO);
+		fogShader.useShader();
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 
 		glfwSwapBuffers(mainWindow.getWindow());
 	}

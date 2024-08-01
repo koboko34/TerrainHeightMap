@@ -21,7 +21,7 @@ public:
 	Terrain();
 	~Terrain();
 
-	void createTerrain(float farPlane);
+	void createTerrain(float nearPlane, float farPlane);
 	void renderTerrain(glm::mat4 view);
 	void clearTerrain();
 
@@ -43,7 +43,7 @@ Terrain::~Terrain()
 	clearTerrain();
 }
 
-inline void Terrain::createTerrain(float farPlane)
+inline void Terrain::createTerrain(float nearPlane, float farPlane)
 {
 	stbi_set_flip_vertically_on_load(true);
 	int width, height, nrChannels;
@@ -92,7 +92,7 @@ inline void Terrain::createTerrain(float farPlane)
 	glEnableVertexAttribArray(1);
 
 	terrainShader = Shader("Shaders/terrain.vs", "Shaders/terrain.fs", "Shaders/terrain.tcs", "Shaders/terrain.tes");
-	terrainShader.UseShader();
+	terrainShader.useShader();
 	terrainShader.setInt("heightMapTexture", 0);
 	GLint maxTessLevel;
 	glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &maxTessLevel);
@@ -109,7 +109,7 @@ inline void Terrain::createTerrain(float farPlane)
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	width = viewport[2];
 	height = viewport[3];
-	projection = glm::perspective(glm::radians(45.f), (float)width / (float)height, 0.1f, farPlane);
+	projection = glm::perspective(glm::radians(45.f), (float)width / (float)height, nearPlane, farPlane);
 	terrainShader.setMatrix4fv("projection", 1, glm::value_ptr(projection));
 
 	glGenTextures(1, &heightMapTexture);
@@ -132,12 +132,11 @@ inline void Terrain::createTerrain(float farPlane)
 
 inline void Terrain::renderTerrain(glm::mat4 view)
 {
-	terrainShader.UseShader();
+	terrainShader.useShader();
 	terrainShader.setMatrix4fv("view", 1, glm::value_ptr(view));
 	glPatchParameteri(GL_PATCH_VERTICES, 4);
 
 	glBindVertexArray(terrainVAO);
-	terrainShader.UseShader();
 	glDrawArrays(GL_PATCHES, 0, 4 * rez * rez);
 }
 
