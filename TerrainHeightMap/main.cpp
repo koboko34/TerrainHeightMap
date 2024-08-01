@@ -28,7 +28,7 @@ int main()
 
 	const int WIDTH = 1920;
 	const int HEIGHT = 1080;
-	const float FAR_PLANE = 5000.f;
+	const float FAR_PLANE = 50000.f;
 
 	Window mainWindow(WIDTH, HEIGHT, false);
 	Camera camera(mainWindow.getWindow());
@@ -78,7 +78,6 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	data = stbi_load("Textures/noiseTexture.png", &width, &height, &nrChannels, 0);
-	std::cout << nrChannels << std::endl;
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -195,7 +194,7 @@ int main()
 	glm::mat4 model;
 	model = glm::mat4(1.f);
 	model = glm::scale(model, glm::vec3(1.f, 2.f, 1.f));
-	model = glm::translate(model, glm::vec3(-2.f, 0.5f, 0.f));
+	model = glm::translate(model, glm::vec3(0.f, 0.5f, 0.f));
 	basicShader.setMatrix4fv("model", 1, glm::value_ptr(model));
 	basicShader.setMatrix4fv("projection", 1, glm::value_ptr(projection));
 
@@ -221,7 +220,7 @@ int main()
 		view = camera.calculateViewMatrix();
 
 		// Wireframe mode
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		terrain.renderTerrain(view);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -230,12 +229,14 @@ int main()
 		basicShader.setMatrix4fv("view", 1, glm::value_ptr(view));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		
+		/*
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBindVertexArray(grassVAO);
 		grassShader.UseShader();
 		grassShader.setMatrix4fv("view", 1, glm::value_ptr(view));
 		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL, BILLBOARDS_PER_GRASS * NUM_GRASS_OBJECTS);
 		glBindVertexArray(0);
+		*/
 
 		glfwSwapBuffers(mainWindow.getWindow());
 	}

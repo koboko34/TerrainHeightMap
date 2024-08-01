@@ -6,6 +6,7 @@ layout (location = 1) in vec2 aTexCoord;
 
 out vec2 TexCoord;
 out float noiseValue;
+out float yPos;
 
 uniform mat4 models[3];
 uniform mat4 view;
@@ -46,7 +47,9 @@ void main()
 	int x = objectID / root;
 	int z = objectID % root;
 
-	vec4 arrayPosOffset = vec4(x * FIELD_DISTANCE / root, 0.0, z * FIELD_DISTANCE / root, 0.0);			// position of each grass object on the grid
+	float xOffset = (x * FIELD_DISTANCE / root) - (FIELD_DISTANCE / 2.0);
+	float zOffset = (z * FIELD_DISTANCE / root) - (FIELD_DISTANCE / 2.0);
+	vec4 arrayPosOffset = vec4(xOffset, 0.0, zOffset, 0.0);												// position of each grass object on the grid
 	
 	// random offset to X and Z to break up the uniform positioning of the grass objects
 	float diameter = FIELD_DISTANCE / root;
@@ -64,11 +67,12 @@ void main()
 	{
 		vec2 uv = vec2(float(x) / float(root), float(z) / float(root));
 		noiseValue = texture(noiseTexture, uv).x;
-		heightOffset = vec4(0.0, noiseValue * 3.0, 0.0, 0.0);
+		heightOffset = vec4(0.0, noiseValue * 2.0, 0.0, 0.0);
 	}
 
 	vec4 worldPos = models[gl_InstanceID % BILLBOARDS_PER_GRASS] * rotationMatrix * vec4(aPos, 0.0, 1.0) + arrayPosOffset + randomOffset + heightOffset;
 	
 	gl_Position = projection * view * worldPos;
 	TexCoord = aTexCoord;
+	yPos = aPos.y;
 }
