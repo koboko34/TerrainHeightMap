@@ -21,7 +21,7 @@ public:
 	Terrain();
 	~Terrain();
 
-	void createTerrain(float nearPlane, float farPlane);
+	void createTerrain(glm::mat4 projection);
 	void renderTerrain(glm::mat4 view);
 	void clearTerrain();
 
@@ -43,7 +43,7 @@ Terrain::~Terrain()
 	clearTerrain();
 }
 
-inline void Terrain::createTerrain(float nearPlane, float farPlane)
+inline void Terrain::createTerrain(glm::mat4 projection)
 {
 	stbi_set_flip_vertically_on_load(true);
 	int width, height, nrChannels;
@@ -103,13 +103,6 @@ inline void Terrain::createTerrain(float nearPlane, float farPlane)
 
 	glm::mat4 model(1.f);
 	terrainShader.setMatrix4fv("model", 1, glm::value_ptr(model));
-
-	glm::mat4 projection;
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	width = viewport[2];
-	height = viewport[3];
-	projection = glm::perspective(glm::radians(45.f), (float)width / (float)height, nearPlane, farPlane);
 	terrainShader.setMatrix4fv("projection", 1, glm::value_ptr(projection));
 
 	glGenTextures(1, &heightMapTexture);
