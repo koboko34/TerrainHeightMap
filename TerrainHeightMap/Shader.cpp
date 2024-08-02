@@ -184,7 +184,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* tes
 	glDeleteShader(tEvalShader);
 }
 
-void Shader::UseShader()
+void Shader::useShader()
 {
 	glUseProgram(shaderId);
 }
@@ -207,4 +207,19 @@ void Shader::setFloat(const std::string& name, float value) const
 void Shader::setMatrix4fv(const std::string& name, GLsizei count, const GLfloat* value) const
 {
 	glUniformMatrix4fv(glGetUniformLocation(shaderId, name.c_str()), count, GL_FALSE, value);
+}
+
+void Shader::setVec4(const std::string& name, float v0, float v1, float v2, float v3) const
+{
+	glUniform4f(glGetUniformLocation(shaderId, name.c_str()), v0, v1, v2, v3);
+}
+
+void Shader::setVec3(const std::string& name, float v0, float v1, float v2) const
+{
+	glUniform3f(glGetUniformLocation(shaderId, name.c_str()), v0, v1, v2);
+}
+
+void Shader::setVec2(const std::string& name, float v0, float v1)
+{
+	glUniform2f(glGetUniformLocation(shaderId, name.c_str()), v0, v1);
 }

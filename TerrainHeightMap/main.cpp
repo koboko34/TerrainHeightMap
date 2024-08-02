@@ -86,6 +86,12 @@ int main()
 	fogShader.setFloat("fogDensity", 0.05f);
 	fogShader.setVec4("fogColor", 0.5f, 0.5f, 0.7f, 1.f);
 
+	Shader boxBlurShader("Shaders/screen.vs", "Shaders/boxBlur.fs");
+	boxBlurShader.useShader();
+	boxBlurShader.setInt("colorTexture", 4);
+	boxBlurShader.setInt("radius", 15);
+	boxBlurShader.setVec2("texOffset", 1.f / (float)WIDTH, 1.f / (float)HEIGHT);
+
 	float quadVertices[] = {
 		-1.f, -1.f,		0.f, 0.f,
 		 1.f, -1.f,		1.f, 0.f,
@@ -314,12 +320,12 @@ int main()
 		
 		// second pass ======== drawing to default on-screen framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClearColor(0.4f, 0.8f, 0.9f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
 
 		glBindVertexArray(quadVAO);
-		fogShader.useShader();
+		//fogShader.useShader();
+		boxBlurShader.useShader();
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 
 		glfwSwapBuffers(mainWindow.getWindow());
